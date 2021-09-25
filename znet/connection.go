@@ -13,10 +13,10 @@ type Connection struct {
 	ConnId uint32
 	// 是否关闭
 	isClose bool
-	// 对应的处理方法
-	handleAPI ziface.HandleFunc
 	// 告知当前连接需要停止
 	ExitChan chan bool
+	// 对应的处理方法
+	router ziface.IRouter
 }
 
 func (c *Connection) startReader() {
@@ -31,10 +31,15 @@ func (c *Connection) startReader() {
 			panic(err)
 		}
 
-		// 调用业务方法
-		if err := c.handleAPI(c.Conn, buf, count); err != nil {
-			panic(err)
+		req := Request{
+			Conn: c,
+			Data: buf[:count],
 		}
+
+		// 调用业务方法
+		c.router.PreHandle(&req)
+		c.router.Handle(&req)
+		c.router.PostHandle(&req)
 	}
 
 }
@@ -70,13 +75,12 @@ func (Connection) Send(data []byte) error {
 	panic("implement me")
 }
 
-
-func NewConnection(conn *net.TCPConn, connId uint32, handleAPI ziface.HandleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connId uint32, router ziface.IRouter) *Connection {
 	return &Connection{
-		Conn:      conn,
-		ConnId:    connId,
-		isClose:   false,
-		handleAPI: handleAPI,
-		ExitChan:  make(chan bool, 1),
+		Conn:     conn,
+		ConnId:   connId,
+		isClose:  false,
+		router:   router,
+		ExitChan: make(chan bool, 1),
 	}
 }

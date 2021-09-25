@@ -5,10 +5,28 @@ import (
 	"net"
 	"testing"
 	"time"
+	"zinx/ziface"
 )
 
+type PingRouter struct {
+	BaseRouter
+}
+
+func (r *PingRouter) PreHandle(req ziface.IRequest) {
+	fmt.Println("pre")
+}
+func (r *PingRouter) Handle(req ziface.IRequest) {
+	fmt.Println("in")
+	conn := req.GetConn().GetTCPConn()
+	conn.Write(req.GetData())
+}
+func (r *PingRouter) PostHandle(req ziface.IRequest) {
+	fmt.Println("post")
+}
+
 func TestServer(t *testing.T) {
-	server := NewServer("zinx v1.0")
+	server := NewServer("zinx v2.0")
+	server.AddRouter(&PingRouter{})
 	server.Serve()
 }
 
