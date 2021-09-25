@@ -31,27 +31,20 @@ func (s *Server) Start() {
 		}
 
 		fmt.Println("start success")
-
+		var cid uint32 = 0
 		for {
 			conn, err := listener.AcceptTCP()
 			fmt.Println("accept a connection: ", conn.RemoteAddr())
 			if err != nil {
 				panic(err)
 			}
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					count, _ := conn.Read(buf)
-					if err != nil {
-						panic(err)
-					}
-					fmt.Println("accept value: ", string(buf))
-					_, _ = conn.Write(buf[:count])
-					if err != nil {
-						panic(err)
-					}
-				}
-			}()
+			// 构造连接 处理业务
+			dealConn := NewConnection(conn, cid, func(conn *net.TCPConn, data []byte, len int) error {
+				conn.Write(data[:len])
+				return nil
+			})
+			cid++
+			dealConn.Start()
 		}
 	}()
 }
