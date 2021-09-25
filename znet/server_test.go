@@ -25,7 +25,7 @@ func (r *PingRouter) PostHandle(req ziface.IRequest) {
 }
 
 func TestServer(t *testing.T) {
-	server := NewServer("zinx v2.0")
+	server := NewServer()
 	server.AddRouter(&PingRouter{})
 	server.Serve()
 }
@@ -33,7 +33,7 @@ func TestServer(t *testing.T) {
 func TestClient(t *testing.T) {
 	fmt.Println("client start")
 
-	conn, _ := net.Dial("tcp", "127.0.0.1:8999")
+	conn, _ := net.Dial("tcp", "127.0.0.1:9999")
 
 	for {
 		_, _ = conn.Write([]byte("hello nanase"))

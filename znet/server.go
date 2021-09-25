@@ -4,6 +4,7 @@ import (
 	// 路径 不是包名
 	"fmt"
 	"net"
+	. "zinx/util"
 	"zinx/ziface"
 )
 
@@ -63,13 +64,14 @@ func (s *Server) AddRouter(router ziface.IRouter) {
 }
 
 // 包名.xxx
-func NewServer(name string) (s ziface.IServer) {
+func NewServer() (s ziface.IServer) {
 	s = &Server{
-		Name:   name,
+		Name:   GlobalConfig.Name,
 		IPVer:  "tcp4",
-		IPAddr: "0.0.0.0",
-		Port:   8999,
+		IPAddr: GlobalConfig.Host,
+		Port:   GlobalConfig.Port,
 		Router: nil,
 	}
+	fmt.Println(GlobalConfig)
 	return
 }
