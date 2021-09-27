@@ -17,7 +17,7 @@ type GlobalObj struct {
 
 	Version    string
 	MaxConn    int    // 允许的最大连接数
-	MaxPkgSize uint32 // 一个数据包的最大值
+	MaxPkgSize uint32 // 一个数据包data区域的最大值
 }
 
 var GlobalConfig *GlobalObj
