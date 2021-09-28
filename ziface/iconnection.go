@@ -14,7 +14,7 @@ type IConnection interface {
 	// 获取客户端状态
 	GetRemoteAddr() net.Addr
 	// 发数据
-	Send(data []byte) error
+	Send(msgId uint32, data []byte) error
 }
 
 // 处理业务的方法

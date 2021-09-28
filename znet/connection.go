@@ -1,9 +1,10 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net"
-	. "zinx/util"
 	"zinx/ziface"
 )
 
@@ -26,15 +27,33 @@ func (c *Connection) startReader() {
 	defer c.Stop()
 
 	for {
-		buf := make([]byte, GlobalConfig.MaxPkgSize)
-		count, err := c.Conn.Read(buf)
-		if err != nil {
+		dp := NewDataPack()
+		header := make([]byte, dp.GetHeaderLen())
+		// 先读header
+		if _, err := io.ReadFull(c.Conn, header); err != nil {
 			panic(err)
 		}
 
+		msg, err := dp.Unpack(header)
+		if err != nil {
+			panic(err)
+		}
+		// 根据读到的len读data
+
+		if msg.GetDataLen() <= 0 {
+			continue
+		}
+
+		data := make([]byte, msg.GetDataLen())
+		if _, err := io.ReadFull(c.Conn, data); err != nil {
+			panic(err)
+		}
+
+		msg.SetData(data)
+
 		req := Request{
 			Conn: c,
-			Data: buf[:count],
+			Msg:  msg,
 		}
 
 		// 调用业务方法
@@ -72,8 +91,20 @@ func (c *Connection) GetRemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (Connection) Send(data []byte) error {
-	panic("implement me")
+func (c *Connection) Send(msgId uint32, data []byte) error {
+	if c.isClose {
+		return errors.New("connection is already closed")
+	}
+	msg := NewMessage(msgId, data)
+	dp := NewDataPack()
+	bytes, err := dp.Pack(msg)
+	if err != nil {
+		panic(err)
+	}
+	if _, err := c.Conn.Write(bytes); err != nil {
+		panic(err)
+	}
+	return nil
 }
 
 func NewConnection(conn *net.TCPConn, connId uint32, router ziface.IRouter) *Connection {

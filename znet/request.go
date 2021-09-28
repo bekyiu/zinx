@@ -6,13 +6,14 @@ import (
 
 type Request struct{
 	Conn ziface.IConnection
-	Data []byte
+	Msg ziface.IMessage
 }
+
 
 func (r *Request) GetConn() ziface.IConnection {
 	return r.Conn
 }
 
-func (r *Request) GetData() []byte {
-	return r.Data
+func (r *Request) GetMsg() ziface.IMessage {
+	return r.Msg
 }

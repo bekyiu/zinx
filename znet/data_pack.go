@@ -17,6 +17,10 @@ func (dp *DataPack) GetHeaderLen() uint32 {
 	return 8
 }
 
+func NewDataPack() *DataPack {
+	return &DataPack{}
+}
+
 // |dataLen|id|data|
 func (dp *DataPack) Pack(message ziface.IMessage) ([]byte, error) {
 	buffer := bytes.NewBuffer([]byte{})
