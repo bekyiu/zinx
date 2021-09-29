@@ -2,6 +2,7 @@ package znet
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"testing"
 	"time"
@@ -12,21 +13,17 @@ type PingRouter struct {
 	BaseRouter
 }
 
-func (r *PingRouter) PreHandle(req ziface.IRequest) {
-	fmt.Println("pre")
-}
+
 func (r *PingRouter) Handle(req ziface.IRequest) {
-	fmt.Println("in")
-	conn := req.GetConn().GetTCPConn()
-	conn.Write(req.GetData())
+	conn := req.GetConn()
+	fmt.Printf("received: %s\n", string(req.GetMsg().GetData()))
+	conn.Send(1, []byte("i love nanase"))
 }
-func (r *PingRouter) PostHandle(req ziface.IRequest) {
-	fmt.Println("post")
-}
+
 
 func TestServer(t *testing.T) {
 	server := NewServer()
-	server.AddRouter(&PingRouter{})
+	server.AddRouter(0, &PingRouter{})
 	server.Serve()
 }
 
@@ -36,10 +33,20 @@ func TestClient(t *testing.T) {
 	conn, _ := net.Dial("tcp", "127.0.0.1:9999")
 
 	for {
-		_, _ = conn.Write([]byte("hello nanase"))
-		buf := make([]byte, 512)
-		count, _ := conn.Read(buf)
-		fmt.Println("server back: ", string(buf[:count]))
+		// 写
+		dp := NewDataPack()
+		msg := NewMessage(0, []byte("hello nanase"))
+		data, _ := dp.Pack(msg)
+		_, _ = conn.Write(data)
+
+		// 读
+		buf := make([]byte, dp.GetHeaderLen())
+		io.ReadFull(conn, buf)
+		header, _ := dp.Unpack(buf)
+		buf = make([]byte, header.GetDataLen())
+		io.ReadFull(conn, buf)
+		fmt.Printf("received: %s\n", string(buf))
+
 		time.Sleep(time.Second * 5)
 	}
 }

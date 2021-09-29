@@ -18,7 +18,7 @@ type Connection struct {
 	// 告知当前连接需要停止
 	ExitChan chan bool
 	// 对应的处理方法
-	router ziface.IRouter
+	MsgHandler ziface.IMsgHandler
 }
 
 func (c *Connection) startReader() {
@@ -57,9 +57,7 @@ func (c *Connection) startReader() {
 		}
 
 		// 调用业务方法
-		c.router.PreHandle(&req)
-		c.router.Handle(&req)
-		c.router.PostHandle(&req)
+		c.MsgHandler.DoHandler(&req)
 	}
 
 }
@@ -107,12 +105,12 @@ func (c *Connection) Send(msgId uint32, data []byte) error {
 	return nil
 }
 
-func NewConnection(conn *net.TCPConn, connId uint32, router ziface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connId uint32, msgHandler ziface.IMsgHandler) *Connection {
 	return &Connection{
-		Conn:     conn,
-		ConnId:   connId,
-		isClose:  false,
-		router:   router,
-		ExitChan: make(chan bool, 1),
+		Conn:       conn,
+		ConnId:     connId,
+		isClose:    false,
+		MsgHandler: msgHandler,
+		ExitChan:   make(chan bool, 1),
 	}
 }
