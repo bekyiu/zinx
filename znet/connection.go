@@ -58,8 +58,8 @@ func (c *Connection) startReader() {
 			Msg:  msg,
 		}
 
-		// 调用业务方法
-		c.MsgHandler.DoHandler(&req)
+		// 存入任务队列
+		c.MsgHandler.AddTask(&req)
 	}
 
 }

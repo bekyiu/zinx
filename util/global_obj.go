@@ -15,22 +15,25 @@ type GlobalObj struct {
 	Port   int
 	Name   string
 
-	Version    string
-	MaxConn    int    // 允许的最大连接数
-	MaxPkgSize uint32 // 一个数据包data区域的最大值
+	Version        string
+	MaxConn        int    // 允许的最大连接数
+	MaxPkgSize     uint32 // 一个数据包data区域的最大值
+	WorkerPoolSize uint32 // 多少个worker
+	TaskQueueSize  uint32 // 一个任务队列的长度
 }
 
 var GlobalConfig *GlobalObj
 
 func init() {
 	GlobalConfig = &GlobalObj{
-		server:     nil,
-		Host:       "0.0.0.0",
-		Port:       8999,
-		Name:       "ZinxServer",
-		Version:    "V0.4",
-		MaxConn:    3,
-		MaxPkgSize: 4096,
+		server:         nil,
+		Host:           "0.0.0.0",
+		Port:           8999,
+		Name:           "ZinxServer",
+		Version:        "V0.4",
+		MaxConn:        3,
+		MaxPkgSize:     4096,
+		WorkerPoolSize: 10,
 	}
 	// 用户自定义配置
 	GlobalConfig.Load()

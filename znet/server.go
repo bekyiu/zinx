@@ -53,8 +53,8 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) Serve() {
+	s.MsgHandler.StartWorkPool()
 	s.Start()
-
 	// 阻塞
 	select {}
 }

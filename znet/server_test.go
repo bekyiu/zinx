@@ -3,6 +3,7 @@ package znet
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"testing"
 	"time"
@@ -66,4 +67,10 @@ func TestPanic(t *testing.T) {
 	fmt.Println(<- ch)
 	fmt.Println(<- ch)
 	fmt.Println(<- ch)
+}
+
+func TestRand(t *testing.T) {
+	rand.Seed(time.Now().Unix())
+	fmt.Println(rand.Int())
+	fmt.Println(rand.Int())
 }
