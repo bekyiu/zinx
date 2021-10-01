@@ -50,3 +50,20 @@ func TestClient(t *testing.T) {
 		time.Sleep(time.Second * 5)
 	}
 }
+
+func TestPanic(t *testing.T) {
+	ch := make(chan int)
+	go func() {
+		ch <- 1
+	}()
+	go func() {
+		ch <- 2
+	}()
+	go func() {
+		ch <- 3
+	}()
+	time.Sleep(time.Second)
+	fmt.Println(<- ch)
+	fmt.Println(<- ch)
+	fmt.Println(<- ch)
+}

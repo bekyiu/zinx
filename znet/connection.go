@@ -19,6 +19,8 @@ type Connection struct {
 	ExitChan chan bool
 	// 对应的处理方法
 	MsgHandler ziface.IMsgHandler
+	// 用于读写分离
+	MsgChan chan []byte
 }
 
 func (c *Connection) startReader() {
@@ -62,18 +64,38 @@ func (c *Connection) startReader() {
 
 }
 
+func (c *Connection) startWriter() {
+	fmt.Println("writer start")
+	defer fmt.Println("writer end")
+
+	for {
+		select {
+		case data := <-c.MsgChan:
+			if _, err := c.Conn.Write(data); err != nil {
+				panic(err)
+			}
+		case <-c.ExitChan:
+			return
+		}
+	}
+
+}
+
 func (c *Connection) Start() {
 	fmt.Printf("conn[%d] start\n", c.ConnId)
 	// 读业务
 	go c.startReader()
+	go c.startWriter()
 }
 
 func (c *Connection) Stop() {
-	fmt.Printf("conn[%d] stop\n", c.ConnId)
 	if c.isClose == false {
+		fmt.Printf("conn[%d] stop\n", c.ConnId)
 		c.isClose = true
 		c.Conn.Close()
+		// close后可读
 		close(c.ExitChan)
+		close(c.MsgChan)
 	}
 }
 
@@ -99,9 +121,7 @@ func (c *Connection) Send(msgId uint32, data []byte) error {
 	if err != nil {
 		panic(err)
 	}
-	if _, err := c.Conn.Write(bytes); err != nil {
-		panic(err)
-	}
+	c.MsgChan <- bytes
 	return nil
 }
 
@@ -112,5 +132,6 @@ func NewConnection(conn *net.TCPConn, connId uint32, msgHandler ziface.IMsgHandl
 		isClose:    false,
 		MsgHandler: msgHandler,
 		ExitChan:   make(chan bool, 1),
+		MsgChan:    make(chan []byte),
 	}
 }
