@@ -44,7 +44,6 @@ func (c *Connection) startReader() {
 			panic(err)
 		}
 		// 根据读到的len读data
-
 		if msg.GetDataLen() <= 0 {
 			continue
 		}
@@ -75,7 +74,8 @@ func (c *Connection) startWriter() {
 		select {
 		case data := <-c.MsgChan:
 			if _, err := c.Conn.Write(data); err != nil {
-				panic(err)
+				fmt.Println(err)
+				break
 			}
 		case <-c.ExitChan:
 			return
@@ -89,10 +89,12 @@ func (c *Connection) Start() {
 	// 读业务
 	go c.startReader()
 	go c.startWriter()
+	c.Server.CallAfterConnStart(c)
 }
 
 func (c *Connection) Stop() {
 	if c.isClose == false {
+		c.Server.CallBeforeConnStop(c)
 		c.isClose = true
 		c.Server.GetConnPool().Remove(c.ConnId)
 		// close后可读

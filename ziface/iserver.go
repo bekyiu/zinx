@@ -13,4 +13,11 @@ type IServer interface {
 	GetMsgHandler() IMsgHandler
 	//
 	GetConnPool() IConnPool
+	// hook
+	// 创建连接后
+	SetAfterConnStart(hook func(connection IConnection))
+	// 停止连接之前
+	SetBeforeConnStop(hook func(connection IConnection))
+	CallAfterConnStart(conn IConnection)
+	CallBeforeConnStop(conn IConnection)
 }

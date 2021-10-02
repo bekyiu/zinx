@@ -25,6 +25,12 @@ func (r *PingRouter) Handle(req ziface.IRequest) {
 func TestServer(t *testing.T) {
 	server := NewServer()
 	server.AddRouter(0, &PingRouter{})
+	server.SetAfterConnStart(func(conn ziface.IConnection) {
+		conn.Send(999, []byte("有一个连接连上来了"))
+	})
+	server.SetBeforeConnStop(func(conn ziface.IConnection) {
+		conn.Send(999, []byte("有一个连接要无了"))
+	})
 	server.Serve()
 }
 

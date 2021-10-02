@@ -9,12 +9,14 @@ import (
 )
 
 type Server struct {
-	Name   string
-	IPVer  string
-	IPAddr string
-	Port   int
-	MsgHandler ziface.IMsgHandler
-	ConnPool ziface.IConnPool
+	Name           string
+	IPVer          string
+	IPAddr         string
+	Port           int
+	MsgHandler     ziface.IMsgHandler
+	ConnPool       ziface.IConnPool
+	AfterConnStart func(connection ziface.IConnection)
+	BeforeConnStop func(connection ziface.IConnection)
 }
 
 func (s *Server) Start() {
@@ -73,15 +75,46 @@ func (s *Server) GetConnPool() ziface.IConnPool {
 	return s.ConnPool
 }
 
+func (s *Server) SetAfterConnStart(hook func(conn ziface.IConnection)) {
+	s.AfterConnStart = hook
+}
+
+func (s *Server) SetBeforeConnStop(hook func(conn ziface.IConnection)) {
+	s.BeforeConnStop = hook
+}
+
+func (s *Server) CallAfterConnStart(conn ziface.IConnection) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	if s.AfterConnStart != nil {
+		s.AfterConnStart(conn)
+	}
+}
+func (s *Server) CallBeforeConnStop(conn ziface.IConnection) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	if s.BeforeConnStop != nil {
+		s.BeforeConnStop(conn)
+	}
+}
+
 // 包名.xxx
 func NewServer() (s ziface.IServer) {
 	s = &Server{
-		Name:   GlobalConfig.Name,
-		IPVer:  "tcp4",
-		IPAddr: GlobalConfig.Host,
-		Port:   GlobalConfig.Port,
+		Name:       GlobalConfig.Name,
+		IPVer:      "tcp4",
+		IPAddr:     GlobalConfig.Host,
+		Port:       GlobalConfig.Port,
 		MsgHandler: NewMsgHandler(),
-		ConnPool: NewConnPool(),
+		ConnPool:   NewConnPool(),
 	}
 	fmt.Println(GlobalConfig)
 	return
