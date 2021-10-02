@@ -3,8 +3,8 @@ package znet
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
+	"sync"
 	"testing"
 	"time"
 	"zinx/ziface"
@@ -28,8 +28,8 @@ func TestServer(t *testing.T) {
 	server.Serve()
 }
 
-func TestClient(t *testing.T) {
-	fmt.Println("client start")
+func TestClient1(t *testing.T) {
+	fmt.Println("client1 start")
 
 	conn, _ := net.Dial("tcp", "127.0.0.1:9999")
 
@@ -37,6 +37,30 @@ func TestClient(t *testing.T) {
 		// 写
 		dp := NewDataPack()
 		msg := NewMessage(0, []byte("hello nanase"))
+		data, _ := dp.Pack(msg)
+		_, _ = conn.Write(data)
+
+		// 读
+		buf := make([]byte, dp.GetHeaderLen())
+		io.ReadFull(conn, buf)
+		header, _ := dp.Unpack(buf)
+		buf = make([]byte, header.GetDataLen())
+		io.ReadFull(conn, buf)
+		fmt.Printf("received: %s\n", string(buf))
+
+		time.Sleep(time.Second * 5)
+	}
+}
+
+func TestClient2(t *testing.T) {
+	fmt.Println("client2 start")
+
+	conn, _ := net.Dial("tcp", "127.0.0.1:9999")
+
+	for {
+		// 写
+		dp := NewDataPack()
+		msg := NewMessage(0, []byte("hello nanase hahaha"))
 		data, _ := dp.Pack(msg)
 		_, _ = conn.Write(data)
 
@@ -70,7 +94,10 @@ func TestPanic(t *testing.T) {
 }
 
 func TestRand(t *testing.T) {
-	rand.Seed(time.Now().Unix())
-	fmt.Println(rand.Int())
-	fmt.Println(rand.Int())
+	var lock sync.RWMutex
+
+	lock.Lock()
+	fmt.Println("zzz")
+	lock.Unlock()
+
 }

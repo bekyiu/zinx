@@ -14,6 +14,7 @@ type Server struct {
 	IPAddr string
 	Port   int
 	MsgHandler ziface.IMsgHandler
+	ConnPool ziface.IConnPool
 }
 
 func (s *Server) Start() {
@@ -33,7 +34,6 @@ func (s *Server) Start() {
 		}
 
 		fmt.Println("start success")
-		var cid uint32 = 0
 		for {
 			conn, err := listener.AcceptTCP()
 			fmt.Println("accept a connection: ", conn.RemoteAddr())
@@ -41,15 +41,17 @@ func (s *Server) Start() {
 				panic(err)
 			}
 			// 构造连接 处理业务
-			dealConn := NewConnection(conn, cid, s.MsgHandler)
-			cid++
+			dealConn, ok := s.ConnPool.Allocate(conn, s)
+			if ok != nil {
+				continue
+			}
 			dealConn.Start()
 		}
 	}()
 }
 
 func (s *Server) Stop() {
-
+	s.ConnPool.Clear()
 }
 
 func (s *Server) Serve() {
@@ -63,6 +65,14 @@ func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
 	s.MsgHandler.AddRouter(msgId, router)
 }
 
+func (s *Server) GetMsgHandler() ziface.IMsgHandler {
+	return s.MsgHandler
+}
+
+func (s *Server) GetConnPool() ziface.IConnPool {
+	return s.ConnPool
+}
+
 // 包名.xxx
 func NewServer() (s ziface.IServer) {
 	s = &Server{
@@ -71,6 +81,7 @@ func NewServer() (s ziface.IServer) {
 		IPAddr: GlobalConfig.Host,
 		Port:   GlobalConfig.Port,
 		MsgHandler: NewMsgHandler(),
+		ConnPool: NewConnPool(),
 	}
 	fmt.Println(GlobalConfig)
 	return

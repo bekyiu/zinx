@@ -21,6 +21,8 @@ type Connection struct {
 	MsgHandler ziface.IMsgHandler
 	// 用于读写分离
 	MsgChan chan []byte
+	// 当前连接属于哪个server
+	Server ziface.IServer
 }
 
 func (c *Connection) startReader() {
@@ -33,7 +35,8 @@ func (c *Connection) startReader() {
 		header := make([]byte, dp.GetHeaderLen())
 		// 先读header
 		if _, err := io.ReadFull(c.Conn, header); err != nil {
-			panic(err)
+			fmt.Println(err)
+			break
 		}
 
 		msg, err := dp.Unpack(header)
@@ -90,9 +93,8 @@ func (c *Connection) Start() {
 
 func (c *Connection) Stop() {
 	if c.isClose == false {
-		fmt.Printf("conn[%d] stop\n", c.ConnId)
 		c.isClose = true
-		c.Conn.Close()
+		c.Server.GetConnPool().Remove(c.ConnId)
 		// close后可读
 		close(c.ExitChan)
 		close(c.MsgChan)
@@ -125,13 +127,14 @@ func (c *Connection) Send(msgId uint32, data []byte) error {
 	return nil
 }
 
-func NewConnection(conn *net.TCPConn, connId uint32, msgHandler ziface.IMsgHandler) *Connection {
+func NewConnection(conn *net.TCPConn, connId uint32, server ziface.IServer) *Connection {
 	return &Connection{
 		Conn:       conn,
 		ConnId:     connId,
 		isClose:    false,
-		MsgHandler: msgHandler,
+		MsgHandler: server.GetMsgHandler(),
 		ExitChan:   make(chan bool, 1),
 		MsgChan:    make(chan []byte),
+		Server:     server,
 	}
 }

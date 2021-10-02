@@ -9,4 +9,8 @@ type IServer interface {
 	Serve()
 	// 给当前服务注册一个路由
 	AddRouter(msgId uint32, router IRouter)
+	//
+	GetMsgHandler() IMsgHandler
+	//
+	GetConnPool() IConnPool
 }
