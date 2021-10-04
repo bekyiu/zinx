@@ -27,9 +27,14 @@ func TestServer(t *testing.T) {
 	server.AddRouter(0, &PingRouter{})
 	server.SetAfterConnStart(func(conn ziface.IConnection) {
 		conn.Send(999, []byte("有一个连接连上来了"))
+		conn.SetProperty("name", "七宝")
+		conn.SetProperty("age", 27)
 	})
 	server.SetBeforeConnStop(func(conn ziface.IConnection) {
 		conn.Send(999, []byte("有一个连接要无了"))
+		fmt.Println("properties:")
+		fmt.Println(conn.GetProperty("name"))
+		fmt.Println(conn.GetProperty("age"))
 	})
 	server.Serve()
 }

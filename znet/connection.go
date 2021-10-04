@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"zinx/ziface"
 )
 
@@ -23,6 +24,9 @@ type Connection struct {
 	MsgChan chan []byte
 	// 当前连接属于哪个server
 	Server ziface.IServer
+	// 用户可以设置一些属性
+	Property     map[string]interface{}
+	PropertyLock sync.RWMutex
 }
 
 func (c *Connection) startReader() {
@@ -129,6 +133,27 @@ func (c *Connection) Send(msgId uint32, data []byte) error {
 	return nil
 }
 
+func (c *Connection) SetProperty(k string, v interface{}) {
+	c.PropertyLock.Lock()
+	defer c.PropertyLock.Unlock()
+	c.Property[k] = v
+}
+func (c *Connection) GetProperty(k string) (interface{}, error) {
+	c.PropertyLock.RLock()
+	defer c.PropertyLock.RUnlock()
+	v, ok := c.Property[k]
+	if ok {
+		return v, nil
+	}
+	return nil, errors.New("property key not exist")
+}
+
+func (c *Connection) RemoveProperty(k string) {
+	c.PropertyLock.Lock()
+	defer c.PropertyLock.Unlock()
+	delete(c.Property, k)
+}
+
 func NewConnection(conn *net.TCPConn, connId uint32, server ziface.IServer) *Connection {
 	return &Connection{
 		Conn:       conn,
@@ -138,5 +163,6 @@ func NewConnection(conn *net.TCPConn, connId uint32, server ziface.IServer) *Con
 		ExitChan:   make(chan bool, 1),
 		MsgChan:    make(chan []byte),
 		Server:     server,
+		Property:   make(map[string]interface{}),
 	}
 }
