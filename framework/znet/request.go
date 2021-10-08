@@ -1,12 +1,12 @@
 package znet
 
 import (
-	"zinx/ziface"
+	"zinx/framework/ziface"
 )
 
 type Request struct{
 	Conn ziface.IConnection
-	Msg ziface.IMessage
+	Msg  ziface.IMessage
 }
 
 

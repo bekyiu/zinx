@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/json"
 	"io/ioutil"
-	"zinx/ziface"
+	"zinx/framework/ziface"
 )
 
 // zinx 全局配置

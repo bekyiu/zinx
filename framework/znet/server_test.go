@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 	"time"
-	"zinx/ziface"
+	"zinx/framework/ziface"
 )
 
 type PingRouter struct {

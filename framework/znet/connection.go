@@ -6,7 +6,7 @@ import (
 	"io"
 	"net"
 	"sync"
-	"zinx/ziface"
+	"zinx/framework/ziface"
 )
 
 type Connection struct {

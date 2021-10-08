@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
-	"zinx/util"
-	"zinx/ziface"
+	"zinx/framework/util"
+	"zinx/framework/ziface"
 )
 
 type MsgHandler struct {
@@ -19,10 +19,10 @@ type MsgHandler struct {
 }
 
 func NewMsgHandler() *MsgHandler {
-	return &MsgHandler {
-		RouterMap: make(map[uint32]ziface.IRouter),
+	return &MsgHandler{
+		RouterMap:      make(map[uint32]ziface.IRouter),
 		WorkerPoolSize: util.GlobalConfig.WorkerPoolSize,
-		TaskQueue: make([]chan ziface.IRequest, util.GlobalConfig.WorkerPoolSize),
+		TaskQueue:      make([]chan ziface.IRequest, util.GlobalConfig.WorkerPoolSize),
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
-	"zinx/ziface"
+	"zinx/framework/ziface"
 )
 
 type ConnPool struct {
